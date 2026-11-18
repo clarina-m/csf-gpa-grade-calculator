@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Calculate your GPA and explore what-if grades with the California Scholarship Federation.">
+  <title>GPA &amp; Grade Calculator | California Scholarship Federation</title>
+  <meta name="google-oauth-client-id" content="15655700574-egbjp1kfltjeeiempf3n2br43eo9j7q9.apps.googleusercontent.com">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="catalog.js"></script>
+  <script defer src="calculator.js"></script>
+  <script defer src="app.js"></script>
+  <script defer src="dashboard.js"></script>
+  <script defer src="google-sync.js"></script>
+</head>
+<body>
+  <header class="masthead">
+    <div class="wrap brand">Notre Dame High School - California Scholarship Federation</div>
+  </header>
+  <main class="wrap">
+    <header class="intro">
+      <h1>GPA &amp; Grade Calculator</h1>
+      <p>Calculate your GPA or see how a future score could change your course grade!</p>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="Calculators">
+      <button id="gpa-tab" role="tab" aria-selected="true" aria-controls="gpa">GPA Calculator</button>
+      <button id="scores-tab" role="tab" aria-selected="false" aria-controls="scores" tabindex="-1">What-If Scores</button>
+    </div>
+
+    <section class="account" aria-label="Student dashboard account">
+      <div class="account-controls">
+        <strong id="dashboard-name">Student Dashboard</strong>
+        <button type="button" id="google-connect" disabled>Sign in with Google</button>
+        <button type="button" id="google-signout" hidden>Sign out</button>
+        <button type="button" id="google-retry" hidden>Retry save</button>
+      </div>
+      <p id="google-status" role="status">Sign in with your NDSJ Google Account to save your coursework and grades (if you aren't signed in, you will have to input all classes/scores again)</p>
+    </section>
+
+    <section id="gpa" role="tabpanel" aria-labelledby="gpa-tab" tabindex="0">
+      <div class="layout">
+        <div class="editor">
+          <h2>Your Courses</h2>
+          <p id="grade-help" class="hint">Input your grade from PowerSchool here. You can enter a letter grade or the percentage for each course.</p>
+          <div id="courses"></div>
+          <button type="button" class="add" id="add-course">+ Add course</button>
+        </div>
+        <aside class="result" aria-label="GPA result">
+          <h2>Estimated GPA</h2>
+          <fieldset class="toggle" aria-label="GPA weighting">
+            <label><input type="radio" name="weighting" value="unweighted" checked><span>Unweighted</span></label>
+            <label><input type="radio" name="weighting" value="weighted"><span>Weighted</span></label>
+          </fieldset>
+          <output id="gpa-result" class="number" aria-live="polite">—</output>
+          <p id="gpa-count">Enter a grade to see your GPA.</p>
+          <details>
+            <summary>How your GPA is calculated</summary>
+            <p>Unweighted: A = 4.0 (90-100), B = 3.0 (80-90), C = 2.0 (70-80), D = 1.0 (60-70), F = 0 (below 60)</p>
+            <p>Weighted: there is one point added for Honors and AP courses (ex A = 5.0), but the same policy above for College Prep courses. </p>
+          <p><a href="https://www.ndsj.org/academics/personal-counseling-faq">Notre Dame GPA Policy</a></p>
+          </details>
+        </aside>
+      </div>
+    </section>
+
+    <section id="scores" role="tabpanel" aria-labelledby="scores-tab" tabindex="0" hidden>
+      <div class="layout">
+        <div class="editor">
+          <h2>Your Scores</h2>
+          <p class="hint">Enter all the already graded and possible points for assignments/tests, then add a predicted score to see how it changes your course grade</p>
+          <div id="assignments"></div>
+          <button type="button" class="add" id="add-assignment">+ Add score</button>
+        </div>
+        <aside class="result" aria-label="Grade result">
+          <h2>Projected grade</h2>
+          <output id="score-result" class="number" aria-live="polite">—</output>
+          <p id="score-count">Enter a score to see your projected grade.</p>
+          <p id="current-score"></p>
+          <details>
+            <summary>How it’s calculated</summary>
+            <p>All your total earned points are divided by total possible points. The prediction includes both already graded and predicted scores.</p>
+          </details>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <footer class="wrap"><span>California Scholarship Federation · Notre Dame High School</span><a href="https://docs.google.com/document/d/1nCfss0L5HK4C7g2jnJ-K26o-a7q2MPbKaJG7o0Om7PU/edit?tab=t.0#heading=h.6557u13960gd">2026–27 course catalog</a></footer>
+
+  <template id="course-template">
+    <fieldset class="entry">
+      <legend></legend>
+      <div class="entry-grid">
+        <label>Department <select data-field="department"></select></label>
+        <label class="course-picker">Course <select data-field="course"></select></label>
+        <label class="wide" data-custom>Course name <input data-field="name" placeholder="Optional"></label>
+        <label>Course type <select data-field="type"><option>Regular</option><option>Honors</option><option>AP</option></select></label>
+        <label>Grade <input data-field="grade" placeholder="A or 92%" aria-describedby="grade-help"></label>
+      </div>
+      <p class="error" data-error hidden></p>
+      <button type="button" class="remove">Remove</button>
+    </fieldset>
+  </template>
+
+  <template id="assignment-template">
+    <fieldset class="entry">
+      <legend></legend>
+      <div class="entry-grid">
+        <label class="wide">Assignment name <input data-field="name" placeholder="Optional"></label>
+        <label>Score type <select data-field="kind"><option>Graded</option><option>Predicted</option></select></label>
+        <label>Points earned <input data-field="earned" type="number" min="0" step="any" placeholder="e.g. 42"></label>
+        <label>Points possible <input data-field="possible" type="number" min="0.01" step="any" placeholder="e.g. 50"></label>
+      </div>
+      <p class="error" data-error hidden></p>
+      <button type="button" class="remove">Remove</button>
+    </fieldset>
+  </template>
+</body>
+</html>
